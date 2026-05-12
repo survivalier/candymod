@@ -1,0 +1,293 @@
+-- =========================================================
+-- LIQUIDE : CHOCOLAT
+-- =========================================================
+
+local chocolat_def = {
+	drawtype = "liquid",
+	tiles = {
+		{
+			name = "candy_chocolat.png",
+			backface_culling = false,
+		}
+	},
+
+	special_tiles = {
+		{
+			name = "candy_chocolat.png",
+			backface_culling = false,
+			animation = {
+				type = "vertical_frames",
+				aspect_w = 16,
+				aspect_h = 16,
+				length = 2.0,
+			},
+		},
+		{
+			name = "candy_chocolat.png",
+			backface_culling = true,
+			animation = {
+				type = "vertical_frames",
+				aspect_w = 16,
+				aspect_h = 16,
+				length = 2.0,
+			},
+		},
+	},
+
+	use_texture_alpha = "blend",
+	sunlight_propagates = true,
+	paramtype = "light",
+
+	walkable = false,
+	pointable = true,
+	diggable = false,
+	buildable_to = true,
+
+	liquid_viscosity = 10,
+	liquid_range = 6,
+
+	post_effect_color = {
+		a = 80,
+		r = 90,
+		g = 45,
+		b = 15
+	},
+
+	groups = {liquid = 3},
+}
+
+-- =========================================================
+-- SOURCE DE CHOCOLAT
+-- =========================================================
+
+minetest.register_node("candy:chocolat_source", table.copy(chocolat_def))
+
+minetest.override_item("candy:chocolat_source", {
+	description = "Source de Chocolat",
+
+	liquidtype = "source",
+	liquid_alternative_flowing = "candy:chocolat_flowing",
+	liquid_alternative_source = "candy:chocolat_source",
+
+	waving = 3,
+})
+
+-- =========================================================
+-- CHOCOLAT COULANT
+-- =========================================================
+
+minetest.register_node("candy:chocolat_flowing", {
+	description = "Chocolat Coulant",
+
+	drawtype = "flowingliquid",
+
+	tiles = {"candy_chocolat.png"},
+
+	special_tiles = {
+		{
+			name = "candy_chocolat.png",
+			backface_culling = false,
+			animation = {
+				type = "vertical_frames",
+				aspect_w = 16,
+				aspect_h = 16,
+				length = 0.8,
+			},
+		},
+		{
+			name = "candy_chocolat.png",
+			backface_culling = true,
+			animation = {
+				type = "vertical_frames",
+				aspect_w = 16,
+				aspect_h = 16,
+				length = 0.8,
+			},
+		},
+	},
+
+	use_texture_alpha = "blend",
+	sunlight_propagates = true,
+
+	paramtype = "light",
+	paramtype2 = "flowingliquid",
+
+	walkable = false,
+	pointable = true,
+	diggable = false,
+	buildable_to = true,
+
+	liquidtype = "flowing",
+
+	liquid_alternative_flowing = "candy:chocolat_flowing",
+	liquid_alternative_source = "candy:chocolat_source",
+
+	liquid_viscosity = 10,
+	liquid_range = 6,
+
+	post_effect_color = {
+		a = 80,
+		r = 90,
+		g = 45,
+		b = 15
+	},
+
+	groups = {
+		liquid = 3,
+		not_in_creative_inventory = 1
+	},
+
+	waving = 0.2,
+})
+
+-- =========================================================
+-- PARTICULES CHOCOLAT
+-- =========================================================
+
+minetest.register_abm({
+	label = "Chocolate Particles",
+
+	nodenames = {
+		"candy:chocolat_source",
+		"candy:chocolat_flowing"
+	},
+
+	interval = 2,
+	chance = 3,
+
+	action = function(pos)
+
+		minetest.add_particlespawner({
+			amount = 4,
+			time = 1,
+
+			minpos = {
+				x = pos.x - 0.2,
+				y = pos.y + 0.7,
+				z = pos.z - 0.2
+			},
+
+			maxpos = {
+				x = pos.x + 0.2,
+				y = pos.y + 1.0,
+				z = pos.z + 0.2
+			},
+
+			minvel = {
+				x = -0.05,
+				y = 0.1,
+				z = -0.05
+			},
+
+			maxvel = {
+				x = 0.05,
+				y = 0.25,
+				z = 0.05
+			},
+
+			minacc = {x = 0, y = 0, z = 0},
+			maxacc = {x = 0, y = 0.03, z = 0},
+
+			minexptime = 1,
+			maxexptime = 2,
+
+			minsize = 2,
+			maxsize = 5,
+
+			texture = "candy_particle.png",
+			glow = 5,
+		})
+
+	end,
+})
+
+-- =========================================================
+-- SEAU DE CHOCOLAT
+-- =========================================================
+
+minetest.register_craftitem("candy:chocolat_bucket", {
+	description = "Seau de Chocolat",
+	inventory_image = "candy_chocolat_bucket.png",
+	stack_max = 1,
+	liquids_pointable = true,
+
+	on_place = function(itemstack, user, pointed_thing)
+
+		if pointed_thing.type ~= "node" then
+			return itemstack
+		end
+
+		local pos = pointed_thing.above
+
+		local pname = user:get_player_name()
+
+		if minetest.is_protected(pos, pname) then
+			minetest.record_protection_violation(pos, pname)
+			return itemstack
+		end
+
+		local node = minetest.get_node(pos)
+		local def = minetest.registered_nodes[node.name]
+
+		if not def or not def.buildable_to then
+			return itemstack
+		end
+
+		minetest.set_node(pos, {
+			name = "candy:chocolat_source"
+		})
+
+		return ItemStack("bucket:bucket_empty")
+	end,
+})
+
+-- =========================================================
+-- SEAU VIDE -> REMPLISSAGE CHOCOLAT
+-- =========================================================
+
+local old_bucket_use =
+	minetest.registered_items["bucket:bucket_empty"].on_use
+
+minetest.override_item("bucket:bucket_empty", {
+
+	liquids_pointable = true,
+
+	on_use = function(itemstack, user, pointed_thing)
+
+		if pointed_thing.type ~= "node" then
+			return itemstack
+		end
+
+		local pos = pointed_thing.under
+		local node = minetest.get_node(pos)
+
+		-- =================================================
+		-- REMPLIR AVEC LE CHOCOLAT
+		-- =================================================
+
+		if node.name == "candy:chocolat_source" then
+
+			local pname = user:get_player_name()
+
+			if minetest.is_protected(pos, pname) then
+				minetest.record_protection_violation(pos, pname)
+				return itemstack
+			end
+
+			minetest.set_node(pos, {name = "air"})
+
+			return ItemStack("candy:chocolat_bucket")
+		end
+
+		-- garder le comportement normal du bucket
+		if old_bucket_use then
+			return old_bucket_use(
+				itemstack,
+				user,
+				pointed_thing
+			)
+		end
+
+		return itemstack
+	end,
+})

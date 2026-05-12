@@ -1,0 +1,190 @@
+minetest.register_node("candy:chocolat", {
+    description = "Chocolat",
+    tiles = {"candy_chocolat.png"},
+    is_ground_content = true,
+    groups = {crumbly = 3},
+})
+minetest.register_node("candy:chocolat_with_caramel", {
+    description = "Chocolat au caramel",
+    tiles = {"candy_caramel.png", "candy_chocolat.png^candy_caramel_side.png"},
+    is_ground_content = true,
+    groups = {crumbly = 3},
+    drop = "candy:chocolat",
+})
+minetest.register_node("candy:bread", {
+    description = "Brioche",
+    tiles = {"candy_bread.png"},
+    is_ground_content = true,
+    groups = {crumbly = 3},
+})
+minetest.register_node("candy:nougat", {
+    description = "Nougat",
+    tiles = {"candy_nougat.png"},
+    is_ground_content = true,
+    groups = {crumbly = 3},
+})
+minetest.register_node("candy:cane", {
+    description = "Sucre d'orge",
+    tiles = {"candy_cane.png"},
+    is_ground_content = true,
+    groups = {crumbly = 3},
+    drop = "candy:candycane 9",
+})
+minetest.register_node("candy:leaves", {
+    description = "Feuilles en sucre",
+    drawtype = "glasslike_framed_optional",
+    tiles = {"candy_leaves.png",},
+    is_ground_content = true,
+	paramtype = "light",
+    groups = {crumbly = 3}
+})
+minetest.register_craftitem("candy:candycane", {
+    description = "Sucre d'orge",
+    inventory_image = "candy_cane_inv.png",
+    groups = {
+        flammable = 1
+    },
+    on_use = minetest.item_eat(4),
+    on_place = function(itemstack, placer, pointed_thing)
+        if pointed_thing.type ~= "node" then
+            return itemstack
+        end
+        local pos = pointed_thing.above
+        local schematic_path =
+            minetest.get_modpath("candy")
+            .. "/schematics/candycane.mts"
+        minetest.place_schematic(
+            pos,
+            schematic_path,
+            "random",
+            {},
+            false
+        )
+        if not minetest.settings:get_bool("creative_mode") then
+            itemstack:take_item()
+        end
+        return itemstack
+    end,
+})
+minetest.register_node("candy:chocolat_block", {
+    description = "Bloc en chocolat",
+    tiles = {"candy_chocolat_block.png"},
+    is_ground_content = true,
+    groups = {crumbly = 3},
+})
+minetest.register_node("candy:chocolat_brick", {
+    description = "Brique de chocolat",
+    tiles = {"candy_chocolat_brick.png"},
+    is_ground_content = true,
+    groups = {crumbly = 3},
+})
+minetest.register_craft({
+    output = "candy:chocolat_block 4",
+    recipe = {
+        {"candy:chocolat","candy:chocolat"},
+        {"candy:chocolat","candy:chocolat"},
+    }
+})
+minetest.register_craft({
+    output = "candy:chocolat_brick 4",
+    recipe = {
+        {"candy:chocolat_block","candy:chocolat_block"},
+        {"candy:chocolat_block","candy:chocolat_block"},
+    }
+})
+minetest.register_node("candy:caramel_glass", {
+    description = "Verre en caramel",
+    drawtype = "glasslike_framed_optional",
+    tiles = {"candy_caramel_glass.png",},
+    is_ground_content = true,
+	paramtype = "light",
+    groups = {crumbly = 3}
+})
+minetest.register_node("candy:chocolat_trunk", {
+    description = "Tronc en chocolat",
+    tiles = {
+        "candy_chocolat_trunk_top.png",
+        "candy_chocolat_trunk_top.png",
+        "candy_chocolat_trunk.png",
+        "candy_chocolat_trunk.png",
+        "candy_chocolat_trunk.png",
+        "candy_chocolat_trunk.png",
+    },
+    is_ground_content = true,
+    groups = {crumbly = 3},
+})
+minetest.register_node("candy:pencake", {
+    description = "Pencake",
+    tiles = {
+        "candy_pancake_top.png",
+        "candy_pancake_top.png",
+        "candy_pancake.png",
+        "candy_pancake.png",
+        "candy_pancake.png",
+        "candy_pancake.png",
+    },
+    is_ground_content = true,
+    groups = {crumbly = 3},
+})
+
+minetest.register_node("candy:escalier_chocolat", {
+    description = "Escalier en brique de chocolat",
+    tiles = {"candy_chocolat_brick.png"},
+    paramtype = "light",
+    paramtype2 = "facedir",
+    is_ground_content = false,
+    groups = {cracky = 3},
+    drawtype = "nodebox",
+    node_box = {
+        type = "fixed",
+        fixed = {
+            -- marche basse
+            {-0.5, -0.5, -0.5, 0.5, 0.0, 0.5},
+
+            -- marche haute (décalée vers l'avant)
+            {-0.5, 0.0, 0.0, 0.5, 0.5, 0.5},
+        }
+    },
+    collision_box = {
+        type = "fixed",
+        fixed = {
+            {-0.5, -0.5, -0.5, 0.5, 0.0, 0.5},
+            {-0.5, 0.0, 0.0, 0.5, 0.5, 0.5},
+        }
+    },
+    selection_box = {
+        type = "fixed",
+        fixed = {
+            {-0.5, -0.5, -0.5, 0.5, 0.5, 0.5},
+        }
+    },
+    on_place = minetest.rotate_node
+})
+minetest.register_node("candy:slab_chocolat", {
+    description = "Dalle en brique de chocolat",
+    tiles = {"candy_chocolat_brick.png"},
+    is_ground_content = false,
+    paramtype = "light",
+    groups = {cracky = 3},
+    drawtype = "nodebox",
+    node_box = {
+        type = "fixed",
+        fixed = {
+            -- moitié inférieure du bloc
+            {-0.5, -0.5, -0.5, 0.5, 0.0, 0.5},
+        }
+    },
+    collision_box = {
+        type = "fixed",
+        fixed = {
+            {-0.5, -0.5, -0.5, 0.5, 0.0, 0.5},
+        }
+    },
+    selection_box = {
+        type = "fixed",
+        fixed = {
+            {-0.5, -0.5, -0.5, 0.5, 0.0, 0.5},
+        }
+    },
+    on_place = minetest.rotate_node
+})

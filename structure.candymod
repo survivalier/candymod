@@ -1,0 +1,124 @@
+----------------------------------------------------
+-- 📁 PATH DES SCHEMATICS
+----------------------------------------------------
+local modpath = minetest.get_modpath("candy")
+
+local candycane  = modpath .. "/schematics/candycane.mts"
+local candytree  = modpath .. "/schematics/candytree.mts"
+local candyhouse = modpath .. "/schematics/candyhouse.mts"
+
+----------------------------------------------------
+-- 🌍 DÉCORATIONS
+----------------------------------------------------
+
+minetest.register_decoration({
+    name = "candy:candycane",
+    deco_type = "schematic",
+    place_on = {"candy:chocolat_with_caramel"},
+    sidelen = 16,
+    fill_ratio = 0.005,
+    biomes = {"candy"},
+    y_max = 80,
+    y_min = 1,
+    schematic = candycane,
+    flags = "place_center_x, place_center_z",
+    rotation = "random",
+})
+
+minetest.register_decoration({
+    name = "candy:tree",
+    deco_type = "schematic",
+    place_on = {"candy:chocolat_with_caramel"},
+    sidelen = 16,
+    fill_ratio = 0.005,
+    biomes = {"candy"},
+    y_max = 80,
+    y_min = 1,
+    schematic = candytree,
+    flags = "place_center_x, place_center_z",
+    rotation = "random",
+})
+
+minetest.register_decoration({
+    name = "candy:house",
+    deco_type = "schematic",
+    place_on = {"candy:chocolat_with_caramel"},
+    sidelen = 16,
+    fill_ratio = 0.003,
+    biomes = {"candy"},
+    y_max = 80,
+    y_min = 1,
+    schematic = candyhouse,
+    flags = "place_center_x, place_center_z",
+    rotation = "random",
+})
+
+----------------------------------------------------
+-- 🍭 LOOT TABLE (mod default)
+----------------------------------------------------
+local loot = {
+    {name = "default:apple", min = 1, max = 5, chance = 1},
+    {name = "default:bread", min = 1, max = 3, chance = 2},
+
+    {name = "default:wood", min = 1, max = 10, chance = 1},
+    {name = "default:stick", min = 2, max = 12, chance = 1},
+
+    {name = "default:coal_lump", min = 1, max = 6, chance = 2},
+    {name = "default:iron_lump", min = 1, max = 4, chance = 3},
+    {name = "default:copper_lump", min = 1, max = 5, chance = 3},
+    {name = "default:tin_lump", min = 1, max = 5, chance = 4},
+
+    {name = "default:mese_crystal_fragment", min = 1, max = 2, chance = 6},
+}
+
+----------------------------------------------------
+-- 📦 REMPLISSAGE DU COFFRE
+----------------------------------------------------
+local function fill_chest(inv)
+    inv:set_list("main", {})
+
+    local count = math.random(2, 6)
+
+    for i = 1, count do
+        local item = loot[math.random(#loot)]
+
+        if math.random(1, item.chance) == 1 then
+            local amount = math.random(item.min, item.max)
+            inv:add_item("main", item.name .. " " .. amount)
+        end
+    end
+end
+
+----------------------------------------------------
+-- 🏠 LBM : coffres générés par schematics
+----------------------------------------------------
+minetest.register_lbm({
+    label = "Fill candy chests",
+    name = "candy:chest",
+    nodenames = {"candy:chest"},
+    run_at_every_load = false,
+
+    action = function(pos, node)
+        local meta = minetest.get_meta(pos)
+        local inv = meta:get_inventory()
+
+        if inv:is_empty("main") then
+            fill_chest(inv)
+        end
+    end
+})
+
+----------------------------------------------------
+-- ✋ COFFRES POSÉS PAR JOUEURS
+----------------------------------------------------
+minetest.register_on_placenode(function(pos, newnode)
+    if newnode.name ~= "candy:chest" then
+        return
+    end
+
+    local meta = minetest.get_meta(pos)
+    local inv = meta:get_inventory()
+
+    inv:set_size("main", 8 * 4)
+    fill_chest(inv)
+end)
